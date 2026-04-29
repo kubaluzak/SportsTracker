@@ -12,6 +12,7 @@ import org.example.sportstracker.football.domain.match.FootballMatchEvent;
 import org.example.sportstracker.football.domain.match.FootballMatchFactory;
 import org.example.sportstracker.football.domain.result.FootballResult;
 import org.example.sportstracker.football.domain.score.FootballScore;
+import org.example.sportstracker.football.domain.stage.FootballKnockoutStage;
 import org.example.sportstracker.football.domain.stage.FootballLeagueStage;
 import org.example.sportstracker.football.domain.table.LeagueTable;
 import org.example.sportstracker.football.domain.table.TableEntry;
@@ -331,6 +332,79 @@ class FootballDomainExtraTest {
         assertEquals("Builder FC", competitor.getName());
         assertEquals(2, team.getPlayers().size());
         assertEquals("Manager X", team.getManager());
+    }
+
+    @Test
+    void shouldAdvanceWinnerFromTwoLeggedKnockoutTieByAggregateScore() {
+        Team lech = team("1", "Lech Poznań");
+        Team legia = team("2", "Legia Warszawa");
+
+        MatchFactory factory = new FootballMatchFactory();
+
+        FootballMatch firstLeg = (FootballMatch) factory.createKnockoutMatch(lech, legia);
+        FootballMatch secondLeg = (FootballMatch) factory.createKnockoutMatch(legia, lech);
+
+        playMatch(
+                firstLeg,
+                event(FootballEventType.GOAL_SCORED, lech, 10, "Lech 1:0"),
+                event(FootballEventType.GOAL_SCORED, legia, 50, "Legia 1:1")
+        );
+
+        playMatch(
+                secondLeg,
+                event(FootballEventType.GOAL_SCORED, lech, 70, "Lech wygrywa rewanż 0:1")
+        );
+
+        FootballKnockoutStage stage = new FootballKnockoutStage();
+        stage.setTwoLegged(true);
+
+        stage.addMatch(firstLeg);
+        stage.addMatch(secondLeg);
+
+        stage.endStage();
+
+        assertEquals(1, stage.getAdvancingCompetitors().size());
+        assertEquals(lech, stage.getAdvancingCompetitors().get(0));
+    }
+
+    @Test
+    void shouldAdvanceWinnerFromTwoLeggedKnockoutTieByPenaltiesWhenAggregateIsDrawn() {
+        Team lech = team("1", "Lech Poznań");
+        Team legia = team("2", "Legia Warszawa");
+
+        MatchFactory factory = new FootballMatchFactory();
+
+        FootballMatch firstLeg = (FootballMatch) factory.createKnockoutMatch(lech, legia);
+        FootballMatch secondLeg = (FootballMatch) factory.createKnockoutMatch(legia, lech);
+
+        playMatch(
+                firstLeg,
+                event(FootballEventType.GOAL_SCORED, lech, 10, "Lech 1:0")
+        );
+
+        secondLeg.startMatch();
+
+        secondLeg.recordEvent(event(FootballEventType.GOAL_SCORED, legia, 30, "Legia 1:0"));
+
+        secondLeg.goToExtraTime();
+        secondLeg.startPenaltyShootout();
+
+        secondLeg.recordEvent(event(FootballEventType.SHOOTOUT_PENALTY_SCORED, legia, 121, "Legia trafia karnego"));
+        secondLeg.recordEvent(event(FootballEventType.SHOOTOUT_PENALTY_SCORED, legia, 122, "Legia trafia drugiego karnego"));
+        secondLeg.recordEvent(event(FootballEventType.SHOOTOUT_PENALTY_SCORED, lech, 123, "Lech trafia karnego"));
+
+        secondLeg.endMatch();
+
+        FootballKnockoutStage stage = new FootballKnockoutStage();
+        stage.setTwoLegged(true);
+
+        stage.addMatch(firstLeg);
+        stage.addMatch(secondLeg);
+
+        stage.endStage();
+
+        assertEquals(1, stage.getAdvancingCompetitors().size());
+        assertEquals(legia, stage.getAdvancingCompetitors().get(0));
     }
 
     private Team team(String id, String name) {
