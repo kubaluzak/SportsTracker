@@ -17,16 +17,32 @@ public class BracketTree {
     private final MatchFactory factory = new FootballMatchFactory();
 
     public void setFirstRound(List<FootballMatch> initialMatches) {
+        if (initialMatches == null || initialMatches.isEmpty()) {
+            throw new IllegalArgumentException("Pierwsza runda drabinki nie może być pusta");
+        }
+
         rounds.clear();
         rounds.add(initialMatches);
     }
 
     public void generateNextRound() {
+        if (rounds.isEmpty()) {
+            throw new IllegalStateException("Nie ustawiono pierwszej rundy drabinki");
+        }
+
         List<FootballMatch> currentRound = rounds.get(rounds.size() - 1);
 
+        if (currentRound.size() % 2 != 0) {
+            throw new IllegalStateException("Runda musi mieć parzystą liczbę meczów");
+        }
+
         for (FootballMatch match : currentRound) {
-            if (match.getStatus() != MatchStatus.COMPLETED) {
+            if (!isResolved(match)) {
                 throw new IllegalStateException("Nie wszystkie mecze w rundzie zostały zakończone!");
+            }
+
+            if (match.getResult().getWinner() == null) {
+                throw new IllegalStateException("Każdy mecz w drabince musi mieć zwycięzcę");
             }
         }
 
@@ -52,7 +68,7 @@ public class BracketTree {
                 String t1 = match.getHomeTeam() != null ? match.getHomeTeam().getName() : "TBD";
                 String t2 = match.getAwayTeam() != null ? match.getAwayTeam().getName() : "TBD";
 
-                if (match.getStatus() == MatchStatus.COMPLETED) {
+                if (isResolved(match)) {
                     String score = match.getScore().display();
                     Team winner = (Team) match.getResult().getWinner();
                     System.out.printf("[%s vs %s] -> Wynik: %s (Awansuje: %s)%n", t1, t2, score, winner.getName());
@@ -62,6 +78,10 @@ public class BracketTree {
             }
         }
         System.out.println("==============================================\n");
+    }
+
+    private boolean isResolved(FootballMatch match) {
+        return match.getStatus() == MatchStatus.COMPLETED || match.getStatus() == MatchStatus.WALKOVER;
     }
 
     private String getRoundName(int matchCount) {

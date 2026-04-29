@@ -26,6 +26,15 @@ public class FootballTournament implements Tournament {
 
     @Override
     public void endTournament() {
+        if (!stages.isEmpty()) {
+            TournamentStage lastStage = stages.get(stages.size() - 1);
+            List<Competitor> winners = lastStage.getAdvancingCompetitors();
+
+            if (winners.size() == 1) {
+                overallWinner = winners.get(0);
+            }
+        }
+
         System.out.println(">>> TOURNAMENT FINISHED: " + name + " <<<");
     }
 

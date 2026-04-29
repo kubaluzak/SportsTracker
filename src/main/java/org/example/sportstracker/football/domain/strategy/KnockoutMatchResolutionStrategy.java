@@ -27,8 +27,7 @@ public class KnockoutMatchResolutionStrategy implements MatchResolutionStrategy 
             winner = (Team) awayTeam;
             wonViaPenalties = true;
         } else {
-            winner = (Team) awayTeam;
-            wonViaPenalties = true;
+            throw new IllegalStateException("Mecz pucharowy musi mieć zwycięzcę po dogrywce lub karnych");
         }
 
         return FootballResult.builder()

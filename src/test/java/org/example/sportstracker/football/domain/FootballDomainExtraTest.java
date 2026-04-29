@@ -138,11 +138,19 @@ class FootballDomainExtraTest {
         assertNull(leagueMatch.getResult().getWinner());
 
         FootballMatch knockoutMatch = (FootballMatch) factory.createKnockoutMatch(home, away);
-        playMatch(
-                knockoutMatch,
-                event(FootballEventType.GOAL_SCORED, home, 10, "Home goal"),
-                event(FootballEventType.GOAL_SCORED, away, 20, "Away goal")
-        );
+
+        knockoutMatch.startMatch();
+        knockoutMatch.recordEvent(event(FootballEventType.GOAL_SCORED, home, 10, "Home goal"));
+        knockoutMatch.recordEvent(event(FootballEventType.GOAL_SCORED, away, 20, "Away goal"));
+
+        knockoutMatch.goToExtraTime();
+        knockoutMatch.startPenaltyShootout();
+
+        knockoutMatch.recordEvent(event(FootballEventType.SHOOTOUT_PENALTY_SCORED, home, 121, "Home penalty"));
+        knockoutMatch.recordEvent(event(FootballEventType.SHOOTOUT_PENALTY_SCORED, away, 122, "Away penalty"));
+        knockoutMatch.recordEvent(event(FootballEventType.SHOOTOUT_PENALTY_SCORED, away, 123, "Away second penalty"));
+
+        knockoutMatch.endMatch();
 
         FootballResult knockoutResult = (FootballResult) knockoutMatch.getResult();
 

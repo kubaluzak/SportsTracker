@@ -324,13 +324,8 @@ class UltimateFullFootballSystemTest {
 
         /*
          * 16. Tworzymy fazę pucharową.
-         * Ustawiamy isTwoLegged, żeby pokazać konfigurację dwumeczu.
-         * Sama logika dwumeczu nie jest liczona, ale flaga jest częścią modelu.
          */
         FootballKnockoutStage knockoutStage = new FootballKnockoutStage();
-        knockoutStage.setTwoLegged(true);
-
-        assertTrue(knockoutStage.isTwoLegged());
 
         tournament.addStage(knockoutStage);
         knockoutStage.startStage();
@@ -460,7 +455,6 @@ class UltimateFullFootballSystemTest {
 
         assertNotNull(tournament.getOverallWinner());
         assertEquals(finalMatch.getAwayTeam(), tournament.getOverallWinner());
-
         /*
          * 25. Testujemy przerwany mecz.
          * Status przechodzi na ABANDONED, ale live score zostaje.
