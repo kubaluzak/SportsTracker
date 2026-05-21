@@ -5,6 +5,7 @@ import org.example.sportstracker.core.domain.competitor.Competitor;
 import java.time.LocalDateTime;
 
 public interface MatchEvent {
+    String getEventId();
     LocalDateTime getTimestamp();
     Competitor getActor();
     String getDescription();

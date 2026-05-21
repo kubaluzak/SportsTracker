@@ -27,7 +27,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class FootballDomainExtraTest {
 
     @Test
-    void shouldUseTimestampAndRelatedEventIdForVarCorrection() {
+    void shouldUseEventIdAndRelatedEventIdForVarCorrection() {
         Team home = team("1", "Home");
         Team away = team("2", "Away");
 
@@ -41,7 +41,7 @@ class FootballDomainExtraTest {
                 .description("Away scores")
                 .build();
 
-        String relatedId = goal.getTimestamp().toString();
+        String relatedId = goal.getEventId();
 
         FootballMatchEvent varReview = FootballMatchEvent.builder()
                 .eventType(FootballEventType.VAR_REVIEW)
@@ -59,6 +59,7 @@ class FootballDomainExtraTest {
                 .relatedEventId(relatedId)
                 .build();
 
+        assertNotNull(goal.getEventId());
         assertNotNull(goal.getTimestamp());
         assertNotNull(varReview.getTimestamp());
         assertNotNull(disallowedGoal.getTimestamp());
@@ -76,6 +77,116 @@ class FootballDomainExtraTest {
         assertEquals(0, match.getScore().getAwayGoals());
         assertTrue(match.getResult().isDraw());
         assertEquals(MatchStatus.COMPLETED, match.getStatus());
+    }
+
+    @Test
+    void shouldDisallowSpecificGoalByRelatedEventId() {
+        Team home = team("1", "Home");
+        Team away = team("2", "Away");
+
+        MatchFactory factory = new FootballMatchFactory();
+        FootballMatch match = (FootballMatch) factory.createLeagueMatch(home, away);
+
+        FootballMatchEvent homeGoal = event(FootballEventType.GOAL_SCORED, home, 10, "Home goal");
+        FootballMatchEvent awayGoal = event(FootballEventType.GOAL_SCORED, away, 20, "Away goal");
+
+        FootballMatchEvent disallowedAwayGoal = FootballMatchEvent.builder()
+                .eventType(FootballEventType.GOAL_DISALLOWED)
+                .actor(away)
+                .minute(22)
+                .description("Away goal disallowed")
+                .relatedEventId(awayGoal.getEventId())
+                .build();
+
+        match.startMatch();
+        match.recordEvent(homeGoal);
+        match.recordEvent(awayGoal);
+        match.recordEvent(disallowedAwayGoal);
+        match.endMatch();
+
+        assertEquals(1, match.getScore().getHomeGoals());
+        assertEquals(0, match.getScore().getAwayGoals());
+        assertEquals(home, match.getResult().getWinner());
+    }
+
+    @Test
+    void shouldRejectVarEventWithUnknownRelatedEventId() {
+        Team home = team("1", "Home");
+        Team away = team("2", "Away");
+
+        MatchFactory factory = new FootballMatchFactory();
+        FootballMatch match = (FootballMatch) factory.createLeagueMatch(home, away);
+
+        FootballMatchEvent invalidVar = FootballMatchEvent.builder()
+                .eventType(FootballEventType.VAR_REVIEW)
+                .actor(home)
+                .minute(15)
+                .description("VAR checks unknown event")
+                .relatedEventId("unknown-event-id")
+                .build();
+
+        match.startMatch();
+
+        IllegalArgumentException exception = assertThrows(
+                IllegalArgumentException.class,
+                () -> match.recordEvent(invalidVar)
+        );
+
+        assertEquals("relatedEventId nie wskazuje na istniejące zdarzenie meczu", exception.getMessage());
+    }
+
+    @Test
+    void shouldRejectGoalDisallowedWithoutRelatedEventId() {
+        Team home = team("1", "Home");
+        Team away = team("2", "Away");
+
+        MatchFactory factory = new FootballMatchFactory();
+        FootballMatch match = (FootballMatch) factory.createLeagueMatch(home, away);
+
+        FootballMatchEvent disallowedGoal = FootballMatchEvent.builder()
+                .eventType(FootballEventType.GOAL_DISALLOWED)
+                .actor(home)
+                .minute(10)
+                .description("Goal disallowed without relation")
+                .build();
+
+        match.startMatch();
+
+        IllegalArgumentException exception = assertThrows(
+                IllegalArgumentException.class,
+                () -> match.recordEvent(disallowedGoal)
+        );
+
+        assertEquals("Zdarzenie wymaga relatedEventId", exception.getMessage());
+    }
+
+    @Test
+    void shouldRejectDuplicateEventIdInSingleMatch() {
+        Team home = team("1", "Home");
+        Team away = team("2", "Away");
+
+        MatchFactory factory = new FootballMatchFactory();
+        FootballMatch match = (FootballMatch) factory.createLeagueMatch(home, away);
+
+        FootballMatchEvent firstGoal = event(FootballEventType.GOAL_SCORED, home, 10, "Home goal");
+
+        FootballMatchEvent duplicatedEvent = FootballMatchEvent.builder()
+                .eventId(firstGoal.getEventId())
+                .eventType(FootballEventType.YELLOW_CARD)
+                .actor(away)
+                .minute(20)
+                .description("Duplicated event id")
+                .build();
+
+        match.startMatch();
+        match.recordEvent(firstGoal);
+
+        IllegalArgumentException exception = assertThrows(
+                IllegalArgumentException.class,
+                () -> match.recordEvent(duplicatedEvent)
+        );
+
+        assertEquals("Zdarzenie o takim eventId już istnieje w meczu", exception.getMessage());
     }
 
     @Test
@@ -448,11 +559,17 @@ class FootballDomainExtraTest {
     }
 
     private static class FakeMatchEvent implements MatchEvent {
+        private final String eventId = java.util.UUID.randomUUID().toString();
         private final Competitor actor;
         private final LocalDateTime timestamp = LocalDateTime.now();
 
         private FakeMatchEvent(Competitor actor) {
             this.actor = actor;
+        }
+
+        @Override
+        public String getEventId() {
+            return eventId;
         }
 
         @Override

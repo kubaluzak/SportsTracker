@@ -7,6 +7,9 @@ import org.example.sportstracker.football.domain.competitor.Team;
 import org.example.sportstracker.football.domain.match.FootballEventType;
 import org.example.sportstracker.football.domain.match.FootballMatchEvent;
 
+import java.util.HashMap;
+import java.util.Map;
+
 @Data
 public class FootballScore implements Score {
     private int homeGoals = 0;
@@ -21,6 +24,13 @@ public class FootballScore implements Score {
 
     private Team homeTeam;
     private Team awayTeam;
+
+    /*
+     * Zapamiętujemy konkretne zdarzenia, które zmieniły wynik albo statystyki.
+     * Dzięki temu GOAL_DISALLOWED, PENALTY_DISALLOWED i EVENT_INVALIDATED
+     * mogą unieważnić konkretny wcześniejszy event po relatedEventId.
+     */
+    private Map<String, ScoreAffectingEventRecord> scoreAffectingEvents = new HashMap<>();
 
     public FootballScore(Team homeTeam, Team awayTeam) {
         this.homeTeam = homeTeam;
@@ -78,41 +88,181 @@ public class FootballScore implements Score {
         FootballEventType type = fbEvent.getEventType();
 
         if (type == FootballEventType.GOAL_SCORED || type == FootballEventType.PENALTY_SCORED) {
-            if (fbEvent.getActor().equals(homeTeam)) {
-                homeGoals++;
-            } else if (fbEvent.getActor().equals(awayTeam)) {
-                awayGoals++;
-            }
+            addGoal(fbEvent);
         } else if (type == FootballEventType.GOAL_DISALLOWED) {
-            if (fbEvent.getActor().equals(homeTeam) && homeGoals > 0) {
-                homeGoals--;
-            } else if (fbEvent.getActor().equals(awayTeam) && awayGoals > 0) {
-                awayGoals--;
-            }
+            invalidateGoal(fbEvent.getRelatedEventId());
         } else if (type == FootballEventType.YELLOW_CARD) {
-            if (fbEvent.getActor().equals(homeTeam)) {
-                homeYellowCards++;
-            } else if (fbEvent.getActor().equals(awayTeam)) {
-                awayYellowCards++;
-            }
+            addYellowCard(fbEvent);
         } else if (type == FootballEventType.RED_CARD) {
-            if (fbEvent.getActor().equals(homeTeam)) {
-                homeRedCards++;
-            } else if (fbEvent.getActor().equals(awayTeam)) {
-                awayRedCards++;
-            }
+            addRedCard(fbEvent);
         } else if (type == FootballEventType.SHOOTOUT_PENALTY_SCORED) {
-            if (fbEvent.getActor().equals(homeTeam)) {
-                homePenalties++;
-            } else if (fbEvent.getActor().equals(awayTeam)) {
-                awayPenalties++;
-            }
+            addShootoutPenalty(fbEvent);
         } else if (type == FootballEventType.PENALTY_DISALLOWED) {
-            if (fbEvent.getActor().equals(homeTeam) && homePenalties > 0) {
-                homePenalties--;
-            } else if (fbEvent.getActor().equals(awayTeam) && awayPenalties > 0) {
-                awayPenalties--;
-            }
+            invalidateShootoutPenalty(fbEvent.getRelatedEventId());
+        } else if (type == FootballEventType.EVENT_INVALIDATED) {
+            invalidateAnyScoreAffectingEvent(fbEvent.getRelatedEventId());
+        }
+
+        /*
+         * Zdarzenia takie jak:
+         * FOUL,
+         * SUBSTITUTION,
+         * VAR_REVIEW,
+         * PENALTY_MISSED,
+         * SHOOTOUT_PENALTY_MISSED
+         * nie zmieniają wyniku ani statystyk przechowywanych w FootballScore.
+         */
+    }
+
+    private void addGoal(FootballMatchEvent event) {
+        if (event.getActor().equals(homeTeam)) {
+            homeGoals++;
+            registerScoreAffectingEvent(event, homeTeam, ScoreAffectingEventType.GOAL);
+        } else if (event.getActor().equals(awayTeam)) {
+            awayGoals++;
+            registerScoreAffectingEvent(event, awayTeam, ScoreAffectingEventType.GOAL);
+        }
+    }
+
+    private void invalidateGoal(String relatedEventId) {
+        if (relatedEventId == null) {
+            return;
+        }
+
+        ScoreAffectingEventRecord record = scoreAffectingEvents.get(relatedEventId);
+
+        if (record == null || !record.active || record.type != ScoreAffectingEventType.GOAL) {
+            return;
+        }
+
+        if (record.team.equals(homeTeam) && homeGoals > 0) {
+            homeGoals--;
+        } else if (record.team.equals(awayTeam) && awayGoals > 0) {
+            awayGoals--;
+        }
+
+        record.active = false;
+    }
+
+    private void addYellowCard(FootballMatchEvent event) {
+        if (event.getActor().equals(homeTeam)) {
+            homeYellowCards++;
+            registerScoreAffectingEvent(event, homeTeam, ScoreAffectingEventType.YELLOW_CARD);
+        } else if (event.getActor().equals(awayTeam)) {
+            awayYellowCards++;
+            registerScoreAffectingEvent(event, awayTeam, ScoreAffectingEventType.YELLOW_CARD);
+        }
+    }
+
+    private void addRedCard(FootballMatchEvent event) {
+        if (event.getActor().equals(homeTeam)) {
+            homeRedCards++;
+            registerScoreAffectingEvent(event, homeTeam, ScoreAffectingEventType.RED_CARD);
+        } else if (event.getActor().equals(awayTeam)) {
+            awayRedCards++;
+            registerScoreAffectingEvent(event, awayTeam, ScoreAffectingEventType.RED_CARD);
+        }
+    }
+
+    private void addShootoutPenalty(FootballMatchEvent event) {
+        if (event.getActor().equals(homeTeam)) {
+            homePenalties++;
+            registerScoreAffectingEvent(event, homeTeam, ScoreAffectingEventType.SHOOTOUT_PENALTY);
+        } else if (event.getActor().equals(awayTeam)) {
+            awayPenalties++;
+            registerScoreAffectingEvent(event, awayTeam, ScoreAffectingEventType.SHOOTOUT_PENALTY);
+        }
+    }
+
+    private void invalidateShootoutPenalty(String relatedEventId) {
+        if (relatedEventId == null) {
+            return;
+        }
+
+        ScoreAffectingEventRecord record = scoreAffectingEvents.get(relatedEventId);
+
+        if (record == null || !record.active || record.type != ScoreAffectingEventType.SHOOTOUT_PENALTY) {
+            return;
+        }
+
+        if (record.team.equals(homeTeam) && homePenalties > 0) {
+            homePenalties--;
+        } else if (record.team.equals(awayTeam) && awayPenalties > 0) {
+            awayPenalties--;
+        }
+
+        record.active = false;
+    }
+
+    private void invalidateAnyScoreAffectingEvent(String relatedEventId) {
+        if (relatedEventId == null) {
+            return;
+        }
+
+        ScoreAffectingEventRecord record = scoreAffectingEvents.get(relatedEventId);
+
+        if (record == null || !record.active) {
+            return;
+        }
+
+        if (record.type == ScoreAffectingEventType.GOAL) {
+            invalidateGoal(relatedEventId);
+        } else if (record.type == ScoreAffectingEventType.SHOOTOUT_PENALTY) {
+            invalidateShootoutPenalty(relatedEventId);
+        } else if (record.type == ScoreAffectingEventType.YELLOW_CARD) {
+            invalidateYellowCard(record);
+        } else if (record.type == ScoreAffectingEventType.RED_CARD) {
+            invalidateRedCard(record);
+        }
+    }
+
+    private void invalidateYellowCard(ScoreAffectingEventRecord record) {
+        if (record.team.equals(homeTeam) && homeYellowCards > 0) {
+            homeYellowCards--;
+        } else if (record.team.equals(awayTeam) && awayYellowCards > 0) {
+            awayYellowCards--;
+        }
+
+        record.active = false;
+    }
+
+    private void invalidateRedCard(ScoreAffectingEventRecord record) {
+        if (record.team.equals(homeTeam) && homeRedCards > 0) {
+            homeRedCards--;
+        } else if (record.team.equals(awayTeam) && awayRedCards > 0) {
+            awayRedCards--;
+        }
+
+        record.active = false;
+    }
+
+    private void registerScoreAffectingEvent(
+            FootballMatchEvent event,
+            Team team,
+            ScoreAffectingEventType type
+    ) {
+        scoreAffectingEvents.put(
+                event.getEventId(),
+                new ScoreAffectingEventRecord(team, type, true)
+        );
+    }
+
+    private enum ScoreAffectingEventType {
+        GOAL,
+        SHOOTOUT_PENALTY,
+        YELLOW_CARD,
+        RED_CARD
+    }
+
+    private static class ScoreAffectingEventRecord {
+        private final Team team;
+        private final ScoreAffectingEventType type;
+        private boolean active;
+
+        private ScoreAffectingEventRecord(Team team, ScoreAffectingEventType type, boolean active) {
+            this.team = team;
+            this.type = type;
+            this.active = active;
         }
     }
 }

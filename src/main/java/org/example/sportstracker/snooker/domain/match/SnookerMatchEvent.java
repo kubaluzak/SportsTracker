@@ -19,4 +19,5 @@ public class SnookerMatchEvent implements MatchEvent {
     private SnookerEventType eventType;
     private int pointsValue;
     private String relatedEventId;
+    private String eventId;
 }

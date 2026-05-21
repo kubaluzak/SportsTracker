@@ -9,7 +9,7 @@ import org.example.sportstracker.core.domain.tournament.AbstractTournamentStage;
 import org.example.sportstracker.football.domain.bracket.BracketTree;
 import org.example.sportstracker.football.domain.competitor.Team;
 import org.example.sportstracker.football.domain.match.FootballMatch;
-import org.example.sportstracker.football.domain.score.FootballScore;
+import org.example.sportstracker.football.domain.strategy.KnockoutMatchResolutionStrategy;
 
 import java.util.List;
 
@@ -23,6 +23,9 @@ public class FootballKnockoutStage extends AbstractTournamentStage {
      * Jeśli true, mecze są analizowane parami jako dwumecz.
      */
     private boolean isTwoLegged;
+
+    private KnockoutMatchResolutionStrategy knockoutResolutionStrategy =
+            new KnockoutMatchResolutionStrategy();
 
     public void advanceWinner(FootballMatch match) {
         if (match.getStatus() != MatchStatus.COMPLETED && match.getStatus() != MatchStatus.WALKOVER) {
@@ -43,66 +46,8 @@ public class FootballKnockoutStage extends AbstractTournamentStage {
             throw new IllegalStateException("Faza nie jest skonfigurowana jako dwumecz");
         }
 
-        validateTwoLeggedPair(firstLeg, secondLeg);
-
-        Team winner = resolveTwoLeggedWinner(firstLeg, secondLeg);
+        Team winner = knockoutResolutionStrategy.resolveTwoLeggedWinner(firstLeg, secondLeg);
         advancingTeams.add(winner);
-    }
-
-    private void validateTwoLeggedPair(FootballMatch firstLeg, FootballMatch secondLeg) {
-        boolean firstCompleted = firstLeg.getStatus() == MatchStatus.COMPLETED
-                || firstLeg.getStatus() == MatchStatus.WALKOVER;
-
-        boolean secondCompleted = secondLeg.getStatus() == MatchStatus.COMPLETED
-                || secondLeg.getStatus() == MatchStatus.WALKOVER;
-
-        if (!firstCompleted || !secondCompleted) {
-            throw new IllegalStateException("Oba mecze dwumeczu muszą być zakończone");
-        }
-
-        boolean samePairReversed = firstLeg.getHomeTeam().equals(secondLeg.getAwayTeam())
-                && firstLeg.getAwayTeam().equals(secondLeg.getHomeTeam());
-
-        if (!samePairReversed) {
-            throw new IllegalStateException("Dwumecz musi składać się z tych samych drużyn w odwróconej kolejności");
-        }
-    }
-
-    private Team resolveTwoLeggedWinner(FootballMatch firstLeg, FootballMatch secondLeg) {
-        FootballScore firstScore = firstLeg.getScore();
-        FootballScore secondScore = secondLeg.getScore();
-
-        Team teamA = firstLeg.getHomeTeam();
-        Team teamB = firstLeg.getAwayTeam();
-
-        int teamAGoals = firstScore.getHomeGoals() + secondScore.getAwayGoals();
-        int teamBGoals = firstScore.getAwayGoals() + secondScore.getHomeGoals();
-
-        if (teamAGoals > teamBGoals) {
-            return teamA;
-        }
-
-        if (teamBGoals > teamAGoals) {
-            return teamB;
-        }
-
-        int teamAPenalties = secondLeg.getAwayTeam().equals(teamA)
-                ? secondScore.getAwayPenalties()
-                : secondScore.getHomePenalties();
-
-        int teamBPenalties = secondLeg.getHomeTeam().equals(teamB)
-                ? secondScore.getHomePenalties()
-                : secondScore.getAwayPenalties();
-
-        if (teamAPenalties > teamBPenalties) {
-            return teamA;
-        }
-
-        if (teamBPenalties > teamAPenalties) {
-            return teamB;
-        }
-
-        throw new IllegalStateException("Dwumecz musi mieć zwycięzcę po agregacie lub karnych");
     }
 
     @Override

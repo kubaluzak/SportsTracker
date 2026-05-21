@@ -124,11 +124,98 @@ public class FootballMatch implements Match {
             throw new IllegalArgumentException("Nieprawidłowy typ zdarzenia dla meczu piłkarskiego");
         }
 
+        validateEventId(fbEvent);
+        validateRelatedEvent(fbEvent);
+
         events.add(fbEvent);
         score.update(event);
 
         for (MatchEventListener listener : listeners) {
             listener.onEventRecorded(event, score);
+        }
+    }
+
+    private void validateEventId(FootballMatchEvent event) {
+        if (event.getEventId() == null || event.getEventId().isBlank()) {
+            throw new IllegalArgumentException("Zdarzenie musi mieć eventId");
+        }
+
+        boolean eventIdAlreadyExists = events.stream()
+                .anyMatch(previousEvent -> previousEvent.getEventId().equals(event.getEventId()));
+
+        if (eventIdAlreadyExists) {
+            throw new IllegalArgumentException("Zdarzenie o takim eventId już istnieje w meczu");
+        }
+    }
+
+    private void validateRelatedEvent(FootballMatchEvent event) {
+        FootballEventType type = event.getEventType();
+
+        boolean requiresRelatedEvent = type == FootballEventType.VAR_REVIEW
+                || type == FootballEventType.GOAL_DISALLOWED
+                || type == FootballEventType.PENALTY_DISALLOWED
+                || type == FootballEventType.EVENT_INVALIDATED;
+
+        if (!requiresRelatedEvent) {
+            return;
+        }
+
+        if (event.getRelatedEventId() == null || event.getRelatedEventId().isBlank()) {
+            throw new IllegalArgumentException("Zdarzenie wymaga relatedEventId");
+        }
+
+        FootballMatchEvent relatedEvent = events.stream()
+                .filter(previousEvent -> previousEvent.getEventId().equals(event.getRelatedEventId()))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "relatedEventId nie wskazuje na istniejące zdarzenie meczu"
+                ));
+
+        validateRelatedEventType(event, relatedEvent);
+    }
+
+    private void validateRelatedEventType(FootballMatchEvent event, FootballMatchEvent relatedEvent) {
+        FootballEventType eventType = event.getEventType();
+        FootballEventType relatedEventType = relatedEvent.getEventType();
+
+        if (eventType == FootballEventType.VAR_REVIEW) {
+            boolean canReview = relatedEventType == FootballEventType.GOAL_SCORED
+                    || relatedEventType == FootballEventType.PENALTY_SCORED
+                    || relatedEventType == FootballEventType.SHOOTOUT_PENALTY_SCORED
+                    || relatedEventType == FootballEventType.FOUL
+                    || relatedEventType == FootballEventType.YELLOW_CARD
+                    || relatedEventType == FootballEventType.RED_CARD;
+
+            if (!canReview) {
+                throw new IllegalArgumentException("VAR nie może odnosić się do tego typu zdarzenia");
+            }
+        }
+
+        if (eventType == FootballEventType.GOAL_DISALLOWED) {
+            boolean canDisallowGoal = relatedEventType == FootballEventType.GOAL_SCORED
+                    || relatedEventType == FootballEventType.PENALTY_SCORED;
+
+            if (!canDisallowGoal) {
+                throw new IllegalArgumentException("Anulowanie gola musi odnosić się do zdarzenia bramkowego");
+            }
+        }
+
+        if (eventType == FootballEventType.PENALTY_DISALLOWED) {
+            if (relatedEventType != FootballEventType.SHOOTOUT_PENALTY_SCORED) {
+                throw new IllegalArgumentException("Anulowanie karnego musi odnosić się do trafionego karnego w serii");
+            }
+        }
+
+        if (eventType == FootballEventType.EVENT_INVALIDATED) {
+            boolean canInvalidate = relatedEventType == FootballEventType.GOAL_SCORED
+                    || relatedEventType == FootballEventType.PENALTY_SCORED
+                    || relatedEventType == FootballEventType.SHOOTOUT_PENALTY_SCORED
+                    || relatedEventType == FootballEventType.YELLOW_CARD
+                    || relatedEventType == FootballEventType.RED_CARD;
+
+            if (!canInvalidate) {
+                throw new IllegalArgumentException("Nie można unieważnić tego typu zdarzenia");
+            }
         }
     }
 
