@@ -7,7 +7,7 @@ import org.example.sportstracker.core.domain.score.Score;
 import org.example.sportstracker.snooker.domain.competitor.Player;
 import org.example.sportstracker.snooker.domain.match.*;
 import org.example.sportstracker.snooker.domain.result.SnookerResult;
-import org.example.sportstracker.snooker.domain.score.SnookerScore;
+import org.example.sportstracker.snooker.domain.match.SnookerMatch.SnookerScore; // Poprawny import zagnieżdżonej klasy wyniku
 import org.example.sportstracker.snooker.domain.strategy.SnookerMatchResolutionStrategy;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -179,12 +179,31 @@ class SnookerMatchTest {
     @Test
     void shouldPreventResolutionIfFramesRequiredToWinAreNotMet() {
         SnookerMatchResolutionStrategy strategy = new SnookerMatchResolutionStrategy(5); // Requires 3 frames
-        SnookerScore tieScore = new SnookerScore(p1_osullivan, p2_trump);
 
-        tieScore.setPlayer1Frames(2);
-        tieScore.setPlayer2Frames(2);
+        SnookerMatch match = (SnookerMatch) bestOf5Factory.createKnockoutMatch(p1_osullivan, p2_trump);
+        match.startMatch();
 
-        // Nobody has reached 3 frames yet.
+        match.recordEvent(createEvent(p1_osullivan, SnookerEventType.POT_RED, 1));
+        match.recordEvent(createEvent(p1_osullivan, SnookerEventType.FRAME_WON, 0));
+
+        match.startNextFrame();
+        match.recordEvent(createEvent(p2_trump, SnookerEventType.POT_RED, 1));
+        match.recordEvent(createEvent(p2_trump, SnookerEventType.FRAME_WON, 0));
+
+        // Frame 3 -> Ronnie wygrywa (2-1)
+        match.startNextFrame();
+        match.recordEvent(createEvent(p1_osullivan, SnookerEventType.POT_RED, 1));
+        match.recordEvent(createEvent(p1_osullivan, SnookerEventType.FRAME_WON, 0));
+
+        // Frame 4 -> Judd wygrywa (2-2)
+        match.startNextFrame();
+        match.recordEvent(createEvent(p2_trump, SnookerEventType.POT_RED, 1));
+        match.recordEvent(createEvent(p2_trump, SnookerEventType.FRAME_WON, 0));
+
+        // Pobieramy bezpieczny, szczelnie zamknięty wynik meczu (aktualny stan: 2-2)
+        SnookerScore tieScore = match.getScore();
+
+        // Nikt nie osiągnął wymaganych 3 frejmów, strategia powinna zgłosić wyjątek
         assertThrows(IllegalStateException.class, () ->
                         strategy.resolve(tieScore, p1_osullivan, p2_trump),
                 "Strategy should refuse to resolve if nobody has reached the target frame count"

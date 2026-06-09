@@ -6,7 +6,7 @@ import org.example.sportstracker.core.domain.result.Result;
 import org.example.sportstracker.core.domain.score.Score;
 import org.example.sportstracker.snooker.domain.competitor.Player;
 import org.example.sportstracker.snooker.domain.result.SnookerResult;
-import org.example.sportstracker.snooker.domain.score.SnookerScore;
+import org.example.sportstracker.snooker.domain.match.SnookerMatch.SnookerScore;
 
 public class SnookerMatchResolutionStrategy implements MatchResolutionStrategy {
     private final int framesNeededToWin;

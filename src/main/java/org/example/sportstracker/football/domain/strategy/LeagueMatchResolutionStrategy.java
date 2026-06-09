@@ -6,7 +6,7 @@ import org.example.sportstracker.core.domain.result.Result;
 import org.example.sportstracker.core.domain.score.Score;
 import org.example.sportstracker.football.domain.competitor.Team;
 import org.example.sportstracker.football.domain.result.FootballResult;
-import org.example.sportstracker.football.domain.score.FootballScore;
+import org.example.sportstracker.football.domain.match.FootballMatch.FootballScore;
 
 public class LeagueMatchResolutionStrategy implements MatchResolutionStrategy {
     @Override

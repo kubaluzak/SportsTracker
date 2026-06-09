@@ -8,10 +8,10 @@ import org.example.sportstracker.football.domain.bracket.BracketTree;
 import org.example.sportstracker.football.domain.competitor.Team;
 import org.example.sportstracker.football.domain.match.FootballEventType;
 import org.example.sportstracker.football.domain.match.FootballMatch;
+import org.example.sportstracker.football.domain.match.FootballMatch.FootballScore; // Aktualizacja ścieżki importu klasy zagnieżdżonej
 import org.example.sportstracker.football.domain.match.FootballMatchEvent;
 import org.example.sportstracker.football.domain.match.FootballMatchFactory;
 import org.example.sportstracker.football.domain.result.FootballResult;
-import org.example.sportstracker.football.domain.score.FootballScore;
 import org.example.sportstracker.football.domain.stage.FootballKnockoutStage;
 import org.example.sportstracker.football.domain.stage.FootballLeagueStage;
 import org.example.sportstracker.football.domain.table.LeagueTable;
@@ -194,7 +194,8 @@ class FootballDomainExtraTest {
         Team home = team("1", "Home");
         Team away = team("2", "Away");
 
-        FootballScore score = new FootballScore(home, away);
+        // POPRAWKA: Utworzenie obiektu klasy zagnieżdżonej statycznie
+        FootballScore score = new FootballMatch.FootballScore(home, away);
 
         score.update(event(FootballEventType.GOAL_SCORED, home, 10, "Home goal"));
         score.update(event(FootballEventType.GOAL_SCORED, away, 20, "Away goal"));
@@ -222,7 +223,8 @@ class FootballDomainExtraTest {
         Team home = team("1", "Home");
         Team away = team("2", "Away");
 
-        FootballScore score = new FootballScore(home, away);
+        // POPRAWKA: Utworzenie obiektu klasy zagnieżdżonej statycznie
+        FootballScore score = new FootballMatch.FootballScore(home, away);
 
         score.update(event(FootballEventType.GOAL_DISALLOWED, home, 5, "Invalid disallow"));
         score.update(event(FootballEventType.GOAL_DISALLOWED, away, 6, "Invalid disallow"));

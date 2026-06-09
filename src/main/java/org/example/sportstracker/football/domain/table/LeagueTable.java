@@ -3,7 +3,7 @@ package org.example.sportstracker.football.domain.table;
 import lombok.Data;
 import org.example.sportstracker.football.domain.competitor.Team;
 import org.example.sportstracker.football.domain.match.FootballMatch;
-import org.example.sportstracker.football.domain.score.FootballScore;
+import org.example.sportstracker.football.domain.match.FootballMatch.FootballScore;
 
 import java.util.ArrayList;
 import java.util.List;

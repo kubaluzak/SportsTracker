@@ -9,6 +9,7 @@ import org.example.sportstracker.snooker.domain.match.SnookerMatchEvent;
 import org.example.sportstracker.snooker.domain.match.SnookerMatchFactory;
 import org.example.sportstracker.snooker.domain.stage.SnookerKnockoutStage;
 import org.example.sportstracker.snooker.domain.tournament.SnookerTournament;
+import org.example.sportstracker.snooker.domain.match.SnookerMatch.SnookerScore; // Poprawny import klasy zagnieżdżonej
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -237,9 +238,6 @@ class SnookerTournamentTest {
 
     // --- Helper Methods ---
 
-    /**
-     * Simulates a player winning a single frame quickly.
-     */
     private void winFrame(SnookerMatch match, Player player) {
         match.recordEvent(SnookerMatchEvent.builder()
                 .actor(player)
