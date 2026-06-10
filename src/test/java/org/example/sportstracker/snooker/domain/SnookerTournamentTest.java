@@ -3,13 +3,11 @@ package org.example.sportstracker.snooker.domain;
 import org.example.sportstracker.core.domain.match.MatchStatus;
 import org.example.sportstracker.snooker.domain.bracket.SnookerBracketTree;
 import org.example.sportstracker.snooker.domain.competitor.Player;
-import org.example.sportstracker.snooker.domain.match.SnookerEventType;
+import org.example.sportstracker.snooker.domain.match.SnookerEvents;
 import org.example.sportstracker.snooker.domain.match.SnookerMatch;
-import org.example.sportstracker.snooker.domain.match.SnookerMatchEvent;
 import org.example.sportstracker.snooker.domain.match.SnookerMatchFactory;
 import org.example.sportstracker.snooker.domain.stage.SnookerKnockoutStage;
 import org.example.sportstracker.snooker.domain.tournament.SnookerTournament;
-import org.example.sportstracker.snooker.domain.match.SnookerMatch.SnookerScore; // Poprawny import klasy zagnieżdżonej
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -28,12 +26,27 @@ class SnookerTournamentTest {
 
     @BeforeEach
     void setUp() {
-        ronnie = Player.builder().id("1").name("Ronnie O'Sullivan").build();
-        judd = Player.builder().id("2").name("Judd Trump").build();
-        john = Player.builder().id("3").name("John Higgins").build();
-        mark = Player.builder().id("4").name("Mark Selby").build();
+        ronnie = Player.builder()
+                .id("1")
+                .name("Ronnie O'Sullivan")
+                .build();
 
-        // Best of 3 means 2 frames are needed to win
+        judd = Player.builder()
+                .id("2")
+                .name("Judd Trump")
+                .build();
+
+        john = Player.builder()
+                .id("3")
+                .name("John Higgins")
+                .build();
+
+        mark = Player.builder()
+                .id("4")
+                .name("Mark Selby")
+                .build();
+
+        // Best of 3 means 2 frames are needed to win.
         bestOf3Factory = new SnookerMatchFactory(3);
     }
 
@@ -81,10 +94,12 @@ class SnookerTournamentTest {
 
         // 7. Generate Final Round
         bracket.generateNextRound();
+
         assertEquals(2, bracket.getRounds().size());
         assertEquals(1, bracket.getRounds().get(1).size());
 
         SnookerMatch finalMatch = bracket.getRounds().get(1).get(0);
+
         assertEquals(ronnie, finalMatch.getPlayer1());
         assertEquals(mark, finalMatch.getPlayer2());
 
@@ -110,6 +125,7 @@ class SnookerTournamentTest {
     @Test
     void shouldHandleWalkoversInTournamentBracket() {
         SnookerKnockoutStage knockoutStage = new SnookerKnockoutStage(3);
+
         SnookerMatch semi1 = (SnookerMatch) bestOf3Factory.createKnockoutMatch(ronnie, judd);
         SnookerMatch semi2 = (SnookerMatch) bestOf3Factory.createKnockoutMatch(john, mark);
 
@@ -126,10 +142,11 @@ class SnookerTournamentTest {
         // Semi 2: John Higgins withdraws, Mark Selby gets a walkover (2-0)
         semi2.assignWalkover(mark, 2, 0);
 
-        // This should NOT throw an exception, as WALKOVER is a valid resolution state
+        // WALKOVER is a valid resolution state.
         assertDoesNotThrow(bracket::generateNextRound);
 
         assertEquals(2, bracket.getRounds().size());
+
         SnookerMatch finalMatch = bracket.getRounds().get(1).get(0);
 
         assertEquals(ronnie, finalMatch.getPlayer1());
@@ -147,13 +164,13 @@ class SnookerTournamentTest {
         knockoutStage.addMatch(match1);
         knockoutStage.addMatch(match2);
 
-        // Ronnie gets a walkover
+        // Ronnie gets a walkover.
         match1.assignWalkover(ronnie, 2, 0);
 
-        // John gets a walkover
+        // John gets a walkover.
         match2.assignWalkover(john, 2, 0);
 
-        // This triggers the fallback `advanceWinner` loop which must handle WALKOVER
+        // This triggers the fallback advanceWinner loop which must handle WALKOVER.
         assertDoesNotThrow(knockoutStage::endStage);
 
         assertEquals(2, knockoutStage.getAdvancingCompetitors().size());
@@ -164,6 +181,7 @@ class SnookerTournamentTest {
     @Test
     void shouldThrowExceptionIfTryingToGenerateNextRoundWithIncompleteMatches() {
         SnookerKnockoutStage knockoutStage = new SnookerKnockoutStage(3);
+
         SnookerMatch semi1 = (SnookerMatch) bestOf3Factory.createKnockoutMatch(ronnie, judd);
         SnookerMatch semi2 = (SnookerMatch) bestOf3Factory.createKnockoutMatch(john, mark);
 
@@ -177,7 +195,7 @@ class SnookerTournamentTest {
         winFrame(semi1, ronnie);
         semi1.endMatch();
 
-        // Semi 2 is NOT played yet
+        // Semi 2 is NOT played yet.
         assertEquals(MatchStatus.SCHEDULED, semi2.getStatus());
 
         IllegalStateException exception = assertThrows(
@@ -191,11 +209,12 @@ class SnookerTournamentTest {
     @Test
     void shouldThrowExceptionIfEndingStageWithIncompleteMatches() {
         SnookerKnockoutStage knockoutStage = new SnookerKnockoutStage(3);
+
         SnookerMatch match1 = (SnookerMatch) bestOf3Factory.createKnockoutMatch(ronnie, judd);
 
         knockoutStage.addMatch(match1);
 
-        // Match hasn't even started
+        // Match has not even started.
         IllegalStateException exception = assertThrows(
                 IllegalStateException.class,
                 knockoutStage::endStage
@@ -206,7 +225,7 @@ class SnookerTournamentTest {
 
     @Test
     void shouldProcessSimpleKnockoutStageWithoutBracketTree() {
-        // Fallback testing: If no bracket is explicitly managed, just advance winners from the list
+        // Fallback testing: if no bracket is explicitly managed, just advance winners from the list.
         SnookerKnockoutStage knockoutStage = new SnookerKnockoutStage(3);
 
         SnookerMatch match1 = (SnookerMatch) bestOf3Factory.createKnockoutMatch(ronnie, judd);
@@ -215,20 +234,21 @@ class SnookerTournamentTest {
         knockoutStage.addMatch(match1);
         knockoutStage.addMatch(match2);
 
-        // Play matches
+        // Play match 1: Judd wins 2-0.
         match1.startMatch();
         winFrame(match1, judd);
         match1.startNextFrame();
         winFrame(match1, judd);
         match1.endMatch();
 
+        // Play match 2: John wins 2-0.
         match2.startMatch();
         winFrame(match2, john);
         match2.startNextFrame();
         winFrame(match2, john);
         match2.endMatch();
 
-        // This triggers the fallback `advanceWinner` loop
+        // This triggers the fallback advanceWinner loop.
         knockoutStage.endStage();
 
         assertEquals(2, knockoutStage.getAdvancingCompetitors().size());
@@ -236,18 +256,20 @@ class SnookerTournamentTest {
         assertTrue(knockoutStage.getAdvancingCompetitors().contains(john));
     }
 
-    // --- Helper Methods ---
-
     private void winFrame(SnookerMatch match, Player player) {
-        match.recordEvent(SnookerMatchEvent.builder()
-                .actor(player)
-                .eventType(SnookerEventType.POT_RED)
-                .pointsValue(1)
-                .build());
+        int frame = match.getCurrentFrame();
 
-        match.recordEvent(SnookerMatchEvent.builder()
-                .actor(player)
-                .eventType(SnookerEventType.FRAME_WON)
-                .build());
+        // Najpierw gracz zdobywa punkt, potem wygrywa frame.
+        match.recordEvent(SnookerEvents.potRed(
+                player,
+                frame,
+                player.getName() + " pots a red"
+        ));
+
+        match.recordEvent(SnookerEvents.frameWon(
+                player,
+                frame,
+                player.getName() + " wins frame " + frame
+        ));
     }
 }

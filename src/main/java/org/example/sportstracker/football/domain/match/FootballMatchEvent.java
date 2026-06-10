@@ -1,36 +1,62 @@
 package org.example.sportstracker.football.domain.match;
 
-import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
 import org.example.sportstracker.core.domain.competitor.Competitor;
 import org.example.sportstracker.core.domain.match.MatchEvent;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
-@Data
-@Builder
-public class FootballMatchEvent implements MatchEvent {
+@Getter
+public abstract class FootballMatchEvent implements MatchEvent {
 
-    @Builder.Default
-    private String eventId = UUID.randomUUID().toString();
+    private final String eventId;
+    private final LocalDateTime timestamp;
+    private final Competitor actor;
+    private final String description;
+    private final int minute;
+    private final List<String> relatedEventIds;
 
-    @Builder.Default
-    private LocalDateTime timestamp = LocalDateTime.now();
+    protected FootballMatchEvent(
+            String eventId,
+            LocalDateTime timestamp,
+            Competitor actor,
+            String description,
+            int minute,
+            List<String> relatedEventIds
+    ) {
+        this.eventId = eventId == null ? UUID.randomUUID().toString() : eventId;
+        this.timestamp = timestamp == null ? LocalDateTime.now() : timestamp;
+        this.actor = actor;
+        this.description = description;
+        this.minute = minute;
+        this.relatedEventIds = relatedEventIds == null ? List.of() : List.copyOf(relatedEventIds);
+    }
 
-    private Competitor actor;
-    private String description;
+    public abstract void applyTo(FootballMatch.FootballScore score);
 
-    // Pola specyficzne dla Football (z UML)
-    private FootballEventType eventType;
-    private int minute;
+    public void undoFrom(FootballMatch.FootballScore score) {
+        // Domyślnie event nie ma efektu do cofnięcia.
+    }
 
-    /*
-     * relatedEventId wskazuje na konkretne wcześniejsze zdarzenie.
-     * Przykład:
-     * - VAR_REVIEW może wskazywać na GOAL_SCORED
-     * - GOAL_DISALLOWED może wskazywać na GOAL_SCORED
-     * - PENALTY_DISALLOWED może wskazywać na SHOOTOUT_PENALTY_SCORED
-     */
-    private String relatedEventId;
+    public boolean canBeUndone() {
+        // Domyślnie event nie jest odwracalny.
+        return false;
+    }
+
+    public boolean requiresRelatedEvents() {
+        // Domyślnie event nie musi odnosić się do innych eventów.
+        return false;
+    }
+
+    public boolean canReferTo(List<FootballMatchEvent> relatedEvents) {
+        // Domyślnie pozwalamy, konkretne eventy mogą to zawęzić.
+        return true;
+    }
+
+    public String getEventName() {
+        // Nazwa klasy jako nazwa typu eventu.
+        return getClass().getSimpleName();
+    }
 }
