@@ -3,7 +3,6 @@ package org.example.sportstracker.football.domain;
 import org.example.sportstracker.core.domain.competitor.Competitor;
 import org.example.sportstracker.core.domain.match.MatchEvent;
 import org.example.sportstracker.core.domain.match.MatchEventListener;
-import org.example.sportstracker.core.domain.match.MatchFactory;
 import org.example.sportstracker.core.domain.match.MatchStatus;
 import org.example.sportstracker.core.domain.score.Score;
 import org.example.sportstracker.football.domain.bracket.BracketTree;
@@ -53,7 +52,7 @@ class FullFootballTournamentWithEventReplayTest {
         // 2. FABRYKA I TURNIEJ
         // =========================
 
-        MatchFactory factory = new FootballMatchFactory();
+        FootballMatchFactory factory = new FootballMatchFactory();
 
         FootballTournament tournament = new FootballTournament();
         tournament.setName("Event Replay Football Cup 2026");
@@ -95,6 +94,7 @@ class FullFootballTournamentWithEventReplayTest {
 
         m1.addMatchEventListener(testBroadcaster);
         m1.addMatchEventListener(new ConsoleMatchBroadcaster());
+
 
         List<FootballMatch> leagueMatches = List.of(m1, m2, m3, m4, m5, m6, m7, m8);
         leagueMatches.forEach(leagueStage::addMatch);

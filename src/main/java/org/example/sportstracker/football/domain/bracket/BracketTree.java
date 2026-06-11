@@ -1,7 +1,6 @@
 package org.example.sportstracker.football.domain.bracket;
 
 import lombok.Getter;
-import org.example.sportstracker.core.domain.match.MatchFactory;
 import org.example.sportstracker.core.domain.match.MatchStatus;
 import org.example.sportstracker.football.domain.competitor.Team;
 import org.example.sportstracker.football.domain.match.FootballMatch;
@@ -14,7 +13,7 @@ import java.util.List;
 public class BracketTree {
     private final List<List<FootballMatch>> rounds = new ArrayList<>();
 
-    private final MatchFactory factory = new FootballMatchFactory();
+    private final FootballMatchFactory factory = new FootballMatchFactory();
 
     public void setFirstRound(List<FootballMatch> initialMatches) {
         if (initialMatches == null || initialMatches.isEmpty()) {

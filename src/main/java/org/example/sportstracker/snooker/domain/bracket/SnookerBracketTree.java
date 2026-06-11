@@ -1,7 +1,6 @@
 package org.example.sportstracker.snooker.domain.bracket;
 
 import lombok.Getter;
-import org.example.sportstracker.core.domain.match.MatchFactory;
 import org.example.sportstracker.core.domain.match.MatchStatus;
 import org.example.sportstracker.snooker.domain.competitor.Player;
 import org.example.sportstracker.snooker.domain.match.SnookerMatch;
@@ -13,7 +12,7 @@ import java.util.List;
 @Getter
 public class SnookerBracketTree {
     private final List<List<SnookerMatch>> rounds = new ArrayList<>();
-    private final MatchFactory factory;
+    private final SnookerMatchFactory factory;
 
     public SnookerBracketTree(int defaultBestOfFrames) {
         this.factory = new SnookerMatchFactory(defaultBestOfFrames);
