@@ -1,6 +1,6 @@
 package org.example.sportstracker.football.domain.match;
 
-import lombok.Data;
+
 import lombok.Getter;
 import org.example.sportstracker.core.domain.competitor.Competitor;
 import org.example.sportstracker.core.domain.match.Match;
@@ -18,20 +18,25 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-@Data
+import static java.util.Collections.unmodifiableList;
+
 public class FootballMatch implements Match {
     private MatchStatus status = MatchStatus.SCHEDULED;
-    private FootballScore score;
-    private List<FootballMatchEvent> events = new ArrayList<>();
+    private final FootballScore score;
 
+    private final List<FootballMatchEvent> events = new ArrayList<>();
+
+    @Getter
     private Team homeTeam;
+    @Getter
     private Team awayTeam;
 
-    private MatchResolutionStrategy resolutionStrategy;
-    private List<MatchEventListener> listeners = new ArrayList<>();
+    private final MatchResolutionStrategy resolutionStrategy;
+    private final List<MatchEventListener> listeners = new ArrayList<>();
 
-    private String abandonReason;
+    @Getter
     private boolean extraTimePlayed;
+    @Getter
     private boolean penaltyShootoutStarted;
     private FootballResult manualResult;
 
@@ -40,6 +45,10 @@ public class FootballMatch implements Match {
         this.awayTeam = awayTeam;
         this.resolutionStrategy = resolutionStrategy;
         this.score = new FootballScore(homeTeam, awayTeam);
+    }
+
+    public List<FootballMatchEvent> getEvents() {
+        return unmodifiableList(events);
     }
 
     @Override
@@ -71,7 +80,6 @@ public class FootballMatch implements Match {
             throw new IllegalStateException("Only an in-progress match can be abandoned");
         }
 
-        abandonReason = reason;
         status = MatchStatus.ABANDONED;
     }
 
@@ -245,7 +253,7 @@ public class FootballMatch implements Match {
 
     @Override
     public FootballScore getScore() {
-        return score;
+        return new FootballScore(score);
     }
 
     @Override
@@ -283,6 +291,34 @@ public class FootballMatch implements Match {
         public FootballScore(Team homeTeam, Team awayTeam) {
             this.homeTeam = homeTeam;
             this.awayTeam = awayTeam;
+        }
+
+        // Copy constructor
+        public FootballScore(FootballScore source) {
+            this.homeGoals = source.homeGoals;
+            this.awayGoals = source.awayGoals;
+            this.homePenalties = source.homePenalties;
+            this.awayPenalties = source.awayPenalties;
+            this.homeYellowCards = source.homeYellowCards;
+            this.awayYellowCards = source.awayYellowCards;
+            this.homeRedCards = source.homeRedCards;
+            this.awayRedCards = source.awayRedCards;
+
+            this.homeTeam = deepCopyTeam(source.homeTeam);
+            this.awayTeam = deepCopyTeam(source.awayTeam);
+
+        }
+
+
+        private Team deepCopyTeam(Team original) {
+            if (original == null) return null;
+
+            return Team.builder()
+                    .id(original.getId())
+                    .name(original.getName())
+                    .manager(original.getManager())
+                    .players(original.getPlayers() != null ? new ArrayList<>(original.getPlayers()) : null)
+                    .build();
         }
 
         void applyWalkover(int homeGoals, int awayGoals) {

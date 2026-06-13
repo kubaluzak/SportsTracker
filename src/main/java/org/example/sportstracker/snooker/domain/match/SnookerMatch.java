@@ -1,6 +1,5 @@
 package org.example.sportstracker.snooker.domain.match;
 
-import lombok.Data;
 import lombok.Getter;
 import org.example.sportstracker.core.domain.competitor.Competitor;
 import org.example.sportstracker.core.domain.match.Match;
@@ -18,21 +17,29 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-@Data
+import static java.util.Collections.unmodifiableList;
+
 public class SnookerMatch implements Match {
     private MatchStatus status = MatchStatus.SCHEDULED;
-    private SnookerScore score;
-    private List<SnookerMatchEvent> events = new ArrayList<>();
 
-    private Player player1;
-    private Player player2;
+    private final SnookerScore score;
 
-    private int totalFrames;
+    private final List<SnookerMatchEvent> events = new ArrayList<>();
+
+    @Getter
+    private final Player player1;
+    @Getter
+    private final Player player2;
+
+    private final int totalFrames;
+
+    @Getter
     private int currentFrame = 1;
 
-    private MatchResolutionStrategy resolutionStrategy;
-    private List<MatchEventListener> listeners = new ArrayList<>();
+    private final MatchResolutionStrategy resolutionStrategy;
+    private final List<MatchEventListener> listeners = new ArrayList<>();
 
+    @Getter
     private String abandonReason;
     private SnookerResult manualResult;
 
@@ -42,6 +49,10 @@ public class SnookerMatch implements Match {
         this.totalFrames = totalFrames;
         this.resolutionStrategy = resolutionStrategy;
         this.score = new SnookerScore(player1, player2);
+    }
+
+    public List<SnookerMatchEvent> getEvents() {
+        return unmodifiableList(events);
     }
 
     @Override
@@ -54,7 +65,6 @@ public class SnookerMatch implements Match {
         if (status != MatchStatus.SCHEDULED) {
             throw new IllegalStateException("Match is not scheduled");
         }
-
         status = MatchStatus.IN_PROGRESS;
     }
 
@@ -63,7 +73,6 @@ public class SnookerMatch implements Match {
         if (status != MatchStatus.IN_PROGRESS) {
             throw new IllegalStateException("Only an in-progress match can be completed");
         }
-
         status = MatchStatus.COMPLETED;
     }
 
@@ -72,7 +81,6 @@ public class SnookerMatch implements Match {
         if (status != MatchStatus.IN_PROGRESS) {
             throw new IllegalStateException("Only an in-progress match can be abandoned");
         }
-
         abandonReason = reason;
         status = MatchStatus.ABANDONED;
     }
@@ -186,18 +194,14 @@ public class SnookerMatch implements Match {
     }
 
     public SnookerScore replayScore() {
-        // Odtwarza wynik od zera na podstawie eventów.
         SnookerScore replayedScore = new SnookerScore(player1, player2);
-
         for (SnookerMatchEvent event : events) {
             replayedScore.update(event);
         }
-
         return replayedScore;
     }
 
     public List<SnookerScoreSnapshot> replayTimeline() {
-        // Tworzy historię wyniku po każdym evencie.
         SnookerScore replayedScore = new SnookerScore(player1, player2);
         List<SnookerScoreSnapshot> timeline = new ArrayList<>();
 
@@ -227,7 +231,6 @@ public class SnookerMatch implements Match {
     }
 
     public void printTimeline() {
-        // Wypisuje timeline meczu po angielsku.
         for (SnookerScoreSnapshot snapshot : replayTimeline()) {
             System.out.println(
                     "Frame "
@@ -247,13 +250,12 @@ public class SnookerMatch implements Match {
         if (relatedEventIds == null || relatedEventIds.isEmpty()) {
             return "";
         }
-
         return " | Related events: " + relatedEventIds;
     }
 
     @Override
     public SnookerScore getScore() {
-        return score;
+        return new SnookerScore(score); // Defensively returns a copy
     }
 
     @Override
@@ -261,7 +263,6 @@ public class SnookerMatch implements Match {
         if (manualResult != null) {
             return manualResult;
         }
-
         return resolutionStrategy.resolve(score, player1, player2);
     }
 
@@ -296,6 +297,34 @@ public class SnookerMatch implements Match {
         public SnookerScore(Player player1, Player player2) {
             this.player1 = player1;
             this.player2 = player2;
+        }
+
+        // Deep-copy constructor for safe data isolation
+        public SnookerScore(SnookerScore source) {
+            this.player1Frames = source.player1Frames;
+            this.player2Frames = source.player2Frames;
+            this.player1CurrentFramePoints = source.player1CurrentFramePoints;
+            this.player2CurrentFramePoints = source.player2CurrentFramePoints;
+            this.highestBreak = source.highestBreak;
+            this.currentBreak = source.currentBreak;
+            this.rebuilding = source.rebuilding;
+
+            this.player1 = deepCopyPlayer(source.player1);
+            this.player2 = deepCopyPlayer(source.player2);
+            this.highestBreakPlayer = deepCopyPlayer(source.highestBreakPlayer);
+            this.currentBreaker = deepCopyPlayer(source.currentBreaker);
+
+        }
+
+        private Player deepCopyPlayer(Player original) {
+            if (original == null) return null;
+
+            return Player.builder()
+                    .id(original.getId())
+                    .name(original.getName())
+                    .rank(original.getRank())
+                    .nationality(original.getNationality())
+                    .build();
         }
 
         void applyWalkover(int player1Frames, int player2Frames) {
