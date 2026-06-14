@@ -11,8 +11,12 @@ public class MissCalledEvent extends SnookerMatchEvent {
     }
 
     @Override
+    public SnookerEventTypeId getEventTypeId() {
+        return SnookerEventTypeId.MISS_CALLED;
+    }
+
+    @Override
     public void applyTo(SnookerMatch.SnookerScore score) {
-        // Miss przerywa break, ale nie zmienia punktów.
         score.resetBreak();
     }
 }

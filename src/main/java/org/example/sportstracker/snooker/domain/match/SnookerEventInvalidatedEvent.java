@@ -16,8 +16,12 @@ public class SnookerEventInvalidatedEvent extends SnookerMatchEvent {
     }
 
     @Override
+    public SnookerEventTypeId getEventTypeId() {
+        return SnookerEventTypeId.EVENT_INVALIDATED;
+    }
+
+    @Override
     public void applyTo(SnookerMatch.SnookerScore score) {
-        // Cofa wskazane eventy.
         score.undoEvents(getRelatedEventIds(), this);
     }
 

@@ -16,8 +16,12 @@ public class EventInvalidatedEvent extends FootballMatchEvent {
     }
 
     @Override
+    public FootballEventTypeId getEventTypeId() {
+        return FootballEventTypeId.EVENT_INVALIDATED;
+    }
+
+    @Override
     public void applyTo(FootballMatch.FootballScore score) {
-        // Cofa dowolne odwracalne eventy.
         score.undoEvents(getRelatedEventIds(), this);
     }
 

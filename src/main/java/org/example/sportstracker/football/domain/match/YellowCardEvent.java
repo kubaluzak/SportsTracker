@@ -11,14 +11,17 @@ public class YellowCardEvent extends FootballMatchEvent {
     }
 
     @Override
+    public FootballEventTypeId getEventTypeId() {
+        return FootballEventTypeId.YELLOW_CARD;
+    }
+
+    @Override
     public void applyTo(FootballMatch.FootballScore score) {
-        // Dodaje żółtą kartkę.
         score.addYellowCardFor(getActor());
     }
 
     @Override
     public void undoFrom(FootballMatch.FootballScore score) {
-        // Cofa żółtą kartkę.
         score.removeYellowCardFor(getActor());
     }
 

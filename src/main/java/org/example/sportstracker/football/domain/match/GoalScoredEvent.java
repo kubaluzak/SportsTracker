@@ -11,14 +11,17 @@ public class GoalScoredEvent extends FootballMatchEvent {
     }
 
     @Override
+    public FootballEventTypeId getEventTypeId() {
+        return FootballEventTypeId.GOAL_SCORED;
+    }
+
+    @Override
     public void applyTo(FootballMatch.FootballScore score) {
-        // Dodaje gola dla drużyny actor.
         score.addGoalFor(getActor());
     }
 
     @Override
     public void undoFrom(FootballMatch.FootballScore score) {
-        // Cofa gola dla drużyny actor.
         score.removeGoalFor(getActor());
     }
 

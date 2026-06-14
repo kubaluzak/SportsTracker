@@ -414,7 +414,7 @@ public class SnookerMatch implements Match {
                     continue;
                 }
 
-                if (event instanceof SnookerEventInvalidatedEvent) {
+                if (event.getEventTypeId() == SnookerEventTypeId.EVENT_INVALIDATED) {
                     continue;
                 }
 

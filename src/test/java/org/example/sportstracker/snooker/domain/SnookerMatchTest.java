@@ -278,7 +278,7 @@ class SnookerMatchTest {
         match.recordEvent(red);
 
         assertEquals(1, broadcaster.getReceivedEvents().size());
-        assertEquals("PotRedEvent", broadcaster.getReceivedEvents().get(0).getEventName());
+        assertEquals("POT_RED", broadcaster.getReceivedEvents().get(0).getEventName());
         assertEquals(p1_osullivan, broadcaster.getReceivedEvents().get(0).getActor());
         assertEquals(red.getEventId(), broadcaster.getReceivedEvents().get(0).getEventId());
     }
@@ -358,7 +358,7 @@ class SnookerMatchTest {
         assertEquals(12, timeline.get(2).player1CurrentFramePoints());
         assertEquals(5, timeline.get(3).player1CurrentFramePoints());
 
-        assertEquals("SnookerEventInvalidatedEvent", timeline.get(3).eventName());
+        assertEquals("EVENT_INVALIDATED", timeline.get(3).eventName());
         assertEquals(List.of(black.getEventId()), timeline.get(3).relatedEventIds());
     }
 

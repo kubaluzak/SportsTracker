@@ -11,6 +11,11 @@ public class SubstitutionEvent extends FootballMatchEvent {
     }
 
     @Override
+    public FootballEventTypeId getEventTypeId() {
+        return FootballEventTypeId.SUBSTITUTION;
+    }
+
+    @Override
     public void applyTo(FootballMatch.FootballScore score) {
         // Zmiana zawodnika nie zmienia wyniku.
     }

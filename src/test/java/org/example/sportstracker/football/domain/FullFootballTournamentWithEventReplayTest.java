@@ -245,7 +245,7 @@ class FullFootballTournamentWithEventReplayTest {
 
         // 12' Lech 1:0
         assertEquals(12, m1Timeline.get(0).minute());
-        assertEquals("GoalScoredEvent", m1Timeline.get(0).eventName());
+        assertEquals("GOAL_SCORED", m1Timeline.get(0).eventName());
         assertEquals(1, m1Timeline.get(0).homeGoals());
         assertEquals(0, m1Timeline.get(0).awayGoals());
 
@@ -260,13 +260,13 @@ class FullFootballTournamentWithEventReplayTest {
 
         // 24' VAR nic nie zmienia
         assertEquals(24, m1Timeline.get(3).minute());
-        assertEquals("VarReviewEvent", m1Timeline.get(3).eventName());
+        assertEquals("VAR_REVIEW", m1Timeline.get(3).eventName());
         assertEquals(2, m1Timeline.get(3).homeGoals());
         assertEquals(0, m1Timeline.get(3).awayGoals());
 
         // 26' anulowanie gola, wynik wraca z 2:0 na 1:0
         assertEquals(26, m1Timeline.get(4).minute());
-        assertEquals("GoalDisallowedEvent", m1Timeline.get(4).eventName());
+        assertEquals("GOAL_DISALLOWED", m1Timeline.get(4).eventName());
         assertEquals(1, m1Timeline.get(4).homeGoals());
         assertEquals(0, m1Timeline.get(4).awayGoals());
         assertEquals(List.of(lechSecondGoal.getEventId()), m1Timeline.get(4).relatedEventIds());
@@ -278,13 +278,13 @@ class FullFootballTournamentWithEventReplayTest {
 
         // 45' anulowanie dwóch kartek
         assertEquals(45, m1Timeline.get(6).minute());
-        assertEquals("EventInvalidatedEvent", m1Timeline.get(6).eventName());
+        assertEquals("EVENT_INVALIDATED", m1Timeline.get(6).eventName());
         assertEquals(0, m1Timeline.get(6).awayYellowCards());
         assertEquals(0, m1Timeline.get(6).awayRedCards());
 
         // 55' Legia 1:1
         assertEquals(55, m1Timeline.get(7).minute());
-        assertEquals("PenaltyScoredEvent", m1Timeline.get(7).eventName());
+        assertEquals("PENALTY_SCORED", m1Timeline.get(7).eventName());
         assertEquals(1, m1Timeline.get(7).homeGoals());
         assertEquals(1, m1Timeline.get(7).awayGoals());
 
@@ -639,7 +639,7 @@ class FullFootballTournamentWithEventReplayTest {
         ScoreSnapshot lastSemi2Snapshot = semi2Timeline.get(semi2Timeline.size() - 1);
 
         assertEquals(126, lastSemi2Snapshot.minute());
-        assertEquals("PenaltyDisallowedEvent", lastSemi2Snapshot.eventName());
+        assertEquals("PENALTY_DISALLOWED", lastSemi2Snapshot.eventName());
         assertEquals(1, lastSemi2Snapshot.homePenalties());
         assertEquals(2, lastSemi2Snapshot.awayPenalties());
         assertEquals(List.of(wrongAwayPenalty.getEventId()), lastSemi2Snapshot.relatedEventIds());
@@ -740,12 +740,12 @@ class FullFootballTournamentWithEventReplayTest {
         assertEquals(1, finalTimeline.get(1).awayGoals());
 
         // 61' VAR, nadal 1:1
-        assertEquals("VarReviewEvent", finalTimeline.get(2).eventName());
+        assertEquals("VAR_REVIEW", finalTimeline.get(2).eventName());
         assertEquals(1, finalTimeline.get(2).homeGoals());
         assertEquals(1, finalTimeline.get(2).awayGoals());
 
         // 62' anulowanie, wraca na 1:0
-        assertEquals("GoalDisallowedEvent", finalTimeline.get(3).eventName());
+        assertEquals("GOAL_DISALLOWED", finalTimeline.get(3).eventName());
         assertEquals(1, finalTimeline.get(3).homeGoals());
         assertEquals(0, finalTimeline.get(3).awayGoals());
 

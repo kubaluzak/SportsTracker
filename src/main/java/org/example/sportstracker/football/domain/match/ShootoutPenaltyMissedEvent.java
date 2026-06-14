@@ -11,6 +11,11 @@ public class ShootoutPenaltyMissedEvent extends FootballMatchEvent {
     }
 
     @Override
+    public FootballEventTypeId getEventTypeId() {
+        return FootballEventTypeId.SHOOTOUT_PENALTY_MISSED;
+    }
+
+    @Override
     public void applyTo(FootballMatch.FootballScore score) {
         // Nietrafiony karny w serii nie zmienia wyniku.
     }

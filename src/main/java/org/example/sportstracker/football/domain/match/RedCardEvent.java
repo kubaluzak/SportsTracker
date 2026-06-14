@@ -11,14 +11,17 @@ public class RedCardEvent extends FootballMatchEvent {
     }
 
     @Override
+    public FootballEventTypeId getEventTypeId() {
+        return FootballEventTypeId.RED_CARD;
+    }
+
+    @Override
     public void applyTo(FootballMatch.FootballScore score) {
-        // Dodaje czerwoną kartkę.
         score.addRedCardFor(getActor());
     }
 
     @Override
     public void undoFrom(FootballMatch.FootballScore score) {
-        // Cofa czerwoną kartkę.
         score.removeRedCardFor(getActor());
     }
 

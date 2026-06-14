@@ -37,6 +37,8 @@ public abstract class SnookerMatchEvent implements MatchEvent {
         this.relatedEventIds = relatedEventIds == null ? List.of() : List.copyOf(relatedEventIds);
     }
 
+    public abstract SnookerEventTypeId getEventTypeId();
+
     public abstract void applyTo(SnookerMatch.SnookerScore score);
 
     public void undoFrom(SnookerMatch.SnookerScore score) {
@@ -59,7 +61,6 @@ public abstract class SnookerMatchEvent implements MatchEvent {
     }
 
     public String getEventName() {
-        // Nazwa klasy pełni rolę typu eventu.
-        return getClass().getSimpleName();
+        return getEventTypeId().name();
     }
 }

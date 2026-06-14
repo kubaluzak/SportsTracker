@@ -11,6 +11,11 @@ public class FoulEvent extends FootballMatchEvent {
     }
 
     @Override
+    public FootballEventTypeId getEventTypeId() {
+        return FootballEventTypeId.FOUL;
+    }
+
+    @Override
     public void applyTo(FootballMatch.FootballScore score) {
         // Faul sam w sobie nie zmienia wyniku.
     }

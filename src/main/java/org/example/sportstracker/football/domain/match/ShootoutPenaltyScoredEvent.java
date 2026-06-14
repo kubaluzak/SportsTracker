@@ -11,14 +11,17 @@ public class ShootoutPenaltyScoredEvent extends FootballMatchEvent {
     }
 
     @Override
+    public FootballEventTypeId getEventTypeId() {
+        return FootballEventTypeId.SHOOTOUT_PENALTY_SCORED;
+    }
+
+    @Override
     public void applyTo(FootballMatch.FootballScore score) {
-        // Dodaje trafiony karny w serii.
         score.addShootoutPenaltyFor(getActor());
     }
 
     @Override
     public void undoFrom(FootballMatch.FootballScore score) {
-        // Cofa trafiony karny w serii.
         score.removeShootoutPenaltyFor(getActor());
     }
 

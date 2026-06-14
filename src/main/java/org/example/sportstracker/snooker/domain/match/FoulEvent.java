@@ -15,14 +15,17 @@ public class FoulEvent extends SnookerMatchEvent {
     }
 
     @Override
+    public SnookerEventTypeId getEventTypeId() {
+        return SnookerEventTypeId.FOUL;
+    }
+
+    @Override
     public void applyTo(SnookerMatch.SnookerScore score) {
-        // Faul daje punkty przeciwnikowi.
         score.addFoulPointsAgainst(getActor(), getPointsValue());
     }
 
     @Override
     public void undoFrom(SnookerMatch.SnookerScore score) {
-        // Cofa punkty przyznane przeciwnikowi za faul.
         score.removeFoulPointsAgainst(getActor(), getPointsValue());
     }
 

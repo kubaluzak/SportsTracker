@@ -11,14 +11,17 @@ public class FrameWonEvent extends SnookerMatchEvent {
     }
 
     @Override
+    public SnookerEventTypeId getEventTypeId() {
+        return SnookerEventTypeId.FRAME_WON;
+    }
+
+    @Override
     public void applyTo(SnookerMatch.SnookerScore score) {
-        // Dodaje frame zwycięzcy i zeruje punkty aktualnego frame'a.
         score.awardFrameTo(getActor());
     }
 
     @Override
     public void undoFrom(SnookerMatch.SnookerScore score) {
-        // Cofa wygranego frame'a.
         score.removeFrameFor(getActor());
     }
 

@@ -11,14 +11,17 @@ public class PotRedEvent extends SnookerMatchEvent {
     }
 
     @Override
+    public SnookerEventTypeId getEventTypeId() {
+        return SnookerEventTypeId.POT_RED;
+    }
+
+    @Override
     public void applyTo(SnookerMatch.SnookerScore score) {
-        // Dodaje 1 punkt za czerwoną.
         score.addPointsFor(getActor(), getPointsValue());
     }
 
     @Override
     public void undoFrom(SnookerMatch.SnookerScore score) {
-        // Cofa punkty za czerwoną.
         score.removePointsFor(getActor(), getPointsValue());
     }
 

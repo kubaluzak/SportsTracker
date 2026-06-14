@@ -11,14 +11,17 @@ public class PenaltyScoredEvent extends FootballMatchEvent {
     }
 
     @Override
+    public FootballEventTypeId getEventTypeId() {
+        return FootballEventTypeId.PENALTY_SCORED;
+    }
+
+    @Override
     public void applyTo(FootballMatch.FootballScore score) {
-        // Karny w czasie meczu liczy się jako gol.
         score.addGoalFor(getActor());
     }
 
     @Override
     public void undoFrom(FootballMatch.FootballScore score) {
-        // Cofa gola z karnego.
         score.removeGoalFor(getActor());
     }
 

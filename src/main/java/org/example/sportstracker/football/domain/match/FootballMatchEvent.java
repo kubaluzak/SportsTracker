@@ -34,6 +34,8 @@ public abstract class FootballMatchEvent implements MatchEvent {
         this.relatedEventIds = relatedEventIds == null ? List.of() : List.copyOf(relatedEventIds);
     }
 
+    public abstract FootballEventTypeId getEventTypeId();
+
     public abstract void applyTo(FootballMatch.FootballScore score);
 
     public void undoFrom(FootballMatch.FootballScore score) {
@@ -56,7 +58,6 @@ public abstract class FootballMatchEvent implements MatchEvent {
     }
 
     public String getEventName() {
-        // Nazwa klasy jako nazwa typu eventu.
-        return getClass().getSimpleName();
+        return getEventTypeId().name();
     }
 }
