@@ -10,10 +10,15 @@ import org.example.sportstracker.football.domain.match.FootballMatch;
 import org.example.sportstracker.football.domain.result.FootballResult;
 import org.example.sportstracker.football.domain.match.FootballMatch.FootballScore;
 
+import java.util.List;
+
 public class KnockoutMatchResolutionStrategy implements MatchResolutionStrategy {
 
     @Override
-    public Result resolve(Score score, Competitor homeTeam, Competitor awayTeam) {
+    public Result resolve(Score score, List<Competitor> competitorList)
+    {
+        Competitor homeTeam = competitorList.get(0);
+        Competitor awayTeam = competitorList.get(1);
         FootballScore fs = (FootballScore) score;
 
         Team winner;

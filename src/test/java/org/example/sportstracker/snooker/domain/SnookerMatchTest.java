@@ -240,7 +240,7 @@ class SnookerMatchTest {
         // Nobody has reached 3 frames, so strategy should refuse to resolve.
         assertThrows(
                 IllegalStateException.class,
-                () -> strategy.resolve(tieScore, p1_osullivan, p2_trump),
+                () -> strategy.resolve(tieScore, List.of(p1_osullivan, p2_trump)),
                 "Strategy should refuse to resolve if nobody has reached the target frame count"
         );
     }

@@ -262,7 +262,7 @@ public class FootballMatch implements Match {
             return manualResult;
         }
 
-        return resolutionStrategy.resolve(score, homeTeam, awayTeam);
+        return resolutionStrategy.resolve(score, List.of(homeTeam, awayTeam));
     }
 
     @Override

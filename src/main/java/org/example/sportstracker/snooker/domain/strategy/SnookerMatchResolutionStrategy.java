@@ -8,6 +8,8 @@ import org.example.sportstracker.snooker.domain.competitor.Player;
 import org.example.sportstracker.snooker.domain.result.SnookerResult;
 import org.example.sportstracker.snooker.domain.match.SnookerMatch.SnookerScore;
 
+import java.util.List;
+
 public class SnookerMatchResolutionStrategy implements MatchResolutionStrategy {
     private final int framesNeededToWin;
 
@@ -16,7 +18,9 @@ public class SnookerMatchResolutionStrategy implements MatchResolutionStrategy {
     }
 
     @Override
-    public Result resolve(Score score, Competitor player1, Competitor player2) {
+    public Result resolve(Score score, List<Competitor> competitorList) {
+        Competitor player1 = competitorList.get(0);
+        Competitor player2 = competitorList.get(1);
         SnookerScore ss = (SnookerScore) score;
         Player winner = null;
 

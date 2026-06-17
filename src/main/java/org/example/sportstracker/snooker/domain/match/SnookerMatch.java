@@ -263,7 +263,7 @@ public class SnookerMatch implements Match {
         if (manualResult != null) {
             return manualResult;
         }
-        return resolutionStrategy.resolve(score, player1, player2);
+        return resolutionStrategy.resolve(score, List.of(player1, player2));
     }
 
     @Override
